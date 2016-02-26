@@ -1,0 +1,9 @@
+To run this code, please install
+  anaconda (https://www.continuum.io/),
+  theano (http://deeplearning.net/software/theano/),
+  keras (http://keras.io/).
+
+The data can be downloaded from
+  http://yann.lecun.com/exdb/mnist/
+  https://www.cs.toronto.edu/~kriz/cifar.html
+  http://www.gaussianprocess.org/gpml/data/
