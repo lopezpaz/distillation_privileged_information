@@ -75,7 +75,7 @@ def distillation(d,q,t,l):
     return graph
 
 def do_exp(x_tr,xs_tr,y_tr,x_te,xs_te,y_te):
-    t = 2
+    t = 1
     l = 1
     # scale stuff
     s_x   = StandardScaler().fit(x_tr)
@@ -90,17 +90,17 @@ def do_exp(x_tr,xs_tr,y_tr,x_te,xs_te,y_te):
     y_te  = np.vstack((y_te==1,y_te==0)).T
     # privileged baseline
     mlp_priv = MLP(xs_tr.shape[1],2)
-    mlp_priv.fit(xs_tr, y_tr, nb_epoch=100, verbose=0)
+    mlp_priv.fit(xs_tr, y_tr, nb_epoch=1000, verbose=0)
     res_priv = np.mean(mlp_priv.predict_classes(xs_te,verbose=0)==np.argmax(y_te,1))
     # unprivivileged baseline
     mlp_reg = MLP(x_tr.shape[1],2)
-    mlp_reg.fit(x_tr, y_tr, nb_epoch=100, verbose=0)
+    mlp_reg.fit(x_tr, y_tr, nb_epoch=1000, verbose=0)
     res_reg = np.mean(mlp_reg.predict_classes(x_te,verbose=0)==np.argmax(y_te,1))
     # distilled
     mlp_dist = distillation(x_tr.shape[1],2,t,l)
     soften = theano.function([mlp_priv.layers[0].input], mlp_priv.layers[0].get_output(train=False))
     p_tr   = softmax(soften(xs_tr.astype(np.float32)),t)
-    mlp_dist.fit({'x':x_tr, 'hard':y_tr, 'soft':p_tr}, nb_epoch=100, verbose=0)
+    mlp_dist.fit({'x':x_tr, 'hard':y_tr, 'soft':p_tr}, nb_epoch=1000, verbose=0)
     res_dis = np.mean(np.argmax(mlp_dist.predict({'x':x_te},verbose=0)['hard'],1)==np.argmax(y_te,1))
     return np.array([res_priv,res_reg,res_dis])
 
@@ -108,8 +108,10 @@ def do_exp(x_tr,xs_tr,y_tr,x_te,xs_te,y_te):
 d      = 50
 n_tr   = 200
 n_te   = 1000
-n_reps = 1
+n_reps = 100
 eid    = 0
+
+np.random.seed(0)
 
 # do all four experiments
 for experiment in (synthetic_01, synthetic_02, synthetic_03, synthetic_04):
